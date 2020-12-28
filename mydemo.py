@@ -12,25 +12,36 @@ def reg_shape_plane(color, shape_name):
     s.addcomponent(poly2, color, color)
     register_shape(shape_name, s)
 
+def turn_left():
+    left(10)
+    #print("Turn Left...")
+
+def turn_right():
+    right(10)
+    #print("Turn Right...")
+
 def plane_move():
     global running
     global plane_x
     running = True
     if running:
-        fd(15)
-        lt(10)
+        fd(5)
         plane_x += 5
-        if (plane_x >= 800):
+        if (plane_x >= 8000):
             running = False
             print ("stopped")
         else:
-            ontimer(plane_move, 25)
+            ontimer(plane_move, 100)
 
 def main():
     reg_shape_plane("blue", "b_plane_shape")
     #a = Turtle()
     shape("b_plane_shape")
     #up()
+    onkeypress(turn_left, "Left")
+    onkeypress(turn_right, "Right")
+    listen()
+
     plane_move()
 
     return "EVENTLOOP"
