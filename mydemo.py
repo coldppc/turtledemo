@@ -25,19 +25,28 @@ def plane_move():
     global plane_x
     running = True
     if running:
-        fd(5)
-        plane_x += 5
-        if (plane_x >= 8000):
-            running = False
-            print ("stopped")
-        else:
-            ontimer(plane_move, 100)
+        if xcor() >= window_width()/2 or xcor() <= -window_width()/2:
+            tracer(2, 100)
+            up()
+            setx(-xcor())
+            tracer(2, 100)
+            down()
+            update()
+        if ycor() >= window_height()/2 or ycor() <= -window_height()/2:
+            tracer(2, 100)
+            up()
+            sety(-ycor())
+            tracer(2, 100)
+            down()
+            update()
+        fd(10)
+        ontimer(plane_move, 100)
 
 def main():
     reg_shape_plane("blue", "b_plane_shape")
     #a = Turtle()
     shape("b_plane_shape")
-    #up()
+    print (window_width(), window_height())
     onkeypress(turn_left, "Left")
     onkeypress(turn_right, "Right")
     listen()
