@@ -3,6 +3,8 @@
 
 from turtle import *
 
+PLANE_SPEED = 5
+BLT_SPEED = 30
 
 def reg_shape_plane(color, shape_name):
     s = Shape("compound")
@@ -20,11 +22,25 @@ def p1_fire():
     blt.shapesize(0.2, 0.2)
     #blt.fillcolor("black")
     blt.setpos(p1.xcor(), p1.ycor())
+    blt.setheading(p1.heading())
     blt.showturtle()
     tracer(1)
-    #bs.append(blt)
+    bs.append(blt)
+    print("list len is %d" % len(bs))
+
 def p2_fire():
-    blt = Turtle()
+    blt = Turtle(visible=False)
+    tracer(2)
+    blt.up()
+    # blt.shape("")
+    blt.shapesize(0.2, 0.2)
+    # blt.fillcolor("black")
+    blt.setpos(p2.xcor(), p2.ycor())
+    blt.setheading(p2.heading())
+    blt.showturtle()
+    tracer(1)
+    bs.append(blt)
+
 def p1_turn_left():
     p1.left(10)
 
@@ -37,43 +53,57 @@ def p2_turn_left():
 def p2_turn_right():
     p2.right(10)
 
-def plane_move():
+"""
+my pos (x, y), center (cx,cy), delta x and delta y (dx,dy)
+"""
+def in_range(x, cx, dx):
+    if (x <= cx - dx) or (x >= cx + dx):
+        return False
+    else:
+        return True
+
+def objects_move():
     global running
     running = True
-    if running:
-
-        if p1.xcor() >= window_width()/2 or p1.xcor() <= -window_width()/2:
-            tracer(2)
-            p1.setx(-p1.xcor())
-            tracer(1)
-            update()
-        if p1.ycor() >= window_height()/2 or p1.ycor() <= -window_height()/2:
-            tracer(2)
-            p1.sety(-p1.ycor())
-            tracer(1)
-            update()
-        p1.fd(3)
-
-
-        if p2.xcor() >= window_width()/2 or p2.xcor() <= -window_width()/2:
-            tracer(2, 100)
-            p2.setx(-p2.xcor())
-            tracer(1,10)
-            update()
-        if p2.ycor() >= window_height()/2 or p2.ycor() <= -window_height()/2:
-            tracer(2, 100)
-            p2.sety(-p2.ycor())
-            tracer(1,10)
-            update()
-        p2.fd(3)
-        ontimer(plane_move, 25)
+    if not running:
+        return
+    if not in_range(p1.xcor(), 0, window_width()/2):
+        tracer(2)
+        p1.setx(-p1.xcor())
+        tracer(1)
+        update()
+    if not in_range(p1.ycor(), 0, window_height()/2):
+        tracer(2)
+        p1.sety(-p1.ycor())
+        tracer(1)
+        update()
+    p1.fd(PLANE_SPEED)
+    if p2.xcor() >= window_width()/2 or p2.xcor() <= -window_width()/2:
+        tracer(2, 100)
+        p2.setx(-p2.xcor())
+        tracer(1,10)
+        update()
+    if p2.ycor() >= window_height()/2 or p2.ycor() <= -window_height()/2:
+        tracer(2, 100)
+        p2.sety(-p2.ycor())
+        tracer(1,10)
+        update()
+    p2.fd(PLANE_SPEED)
+    for b in bs:
+        if not in_range(b.xcor(), 0, window_width()/2) or \
+                not in_range(b.ycor(), 0, window_height()/2):
+            b.hideturtle()
+            bs.remove(b)
+        else:
+            b.fd(BLT_SPEED)
+    ontimer(objects_move, 30)
 
 def main():
     reg_shape_plane("blue", "b_plane_shape")
     reg_shape_plane("green", "g_plane_shape")
     global p1, p2
     global bs
-
+    bs = []
     p1 = Turtle()
     p1.shape("b_plane_shape")
     p2 = Turtle()
@@ -88,7 +118,7 @@ def main():
     listen()
     p1.up()
     p2.up()
-    plane_move()
+    objects_move()
 
     return "EVENTLOOP"
 
