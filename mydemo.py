@@ -14,32 +14,27 @@ def reg_shape_plane(color, shape_name):
     s.addcomponent(poly2, color, color)
     register_shape(shape_name, s)
 
-def p1_fire():
-    blt = Turtle(visible=False)
+def new_bullet(blt_list, plane):
     tracer(2)
-    blt.up()
-    #blt.shape("")
-    blt.shapesize(0.2, 0.2)
-    #blt.fillcolor("black")
-    blt.setpos(p1.xcor(), p1.ycor())
-    blt.setheading(p1.heading())
-    blt.showturtle()
+    if len(blt_list) < 2:
+        b = Turtle(visible=False)
+        b.up()
+        b.shapesize(0.2, 0.2)
+    else:
+        # reuse bullet 0
+        b = blt_list.pop(0)
+        b.hideturtle()
+    b.setpos(plane.xcor(), plane.ycor())
+    b.setheading(plane.heading())
+    b.showturtle()
+    blt_list.append(b)
     tracer(1)
-    bs.append(blt)
-    print("list len is %d" % len(bs))
+
+def p1_fire():
+    new_bullet(blt_list1, p1)
 
 def p2_fire():
-    blt = Turtle(visible=False)
-    tracer(2)
-    blt.up()
-    # blt.shape("")
-    blt.shapesize(0.2, 0.2)
-    # blt.fillcolor("black")
-    blt.setpos(p2.xcor(), p2.ycor())
-    blt.setheading(p2.heading())
-    blt.showturtle()
-    tracer(1)
-    bs.append(blt)
+    new_bullet(blt_list2, p2)
 
 def p1_turn_left():
     p1.left(10)
@@ -89,21 +84,27 @@ def objects_move():
         tracer(1,10)
         update()
     p2.fd(PLANE_SPEED)
-    for b in bs:
+    for b in blt_list1:
         if not in_range(b.xcor(), 0, window_width()/2) or \
-                not in_range(b.ycor(), 0, window_height()/2):
+            not in_range(b.ycor(), 0, window_height()/2):
             b.hideturtle()
-            bs.remove(b)
         else:
             b.fd(BLT_SPEED)
-    ontimer(objects_move, 30)
+    for b in blt_list2:
+        if not in_range(b.xcor(), 0, window_width()/2) or \
+            not in_range(b.ycor(), 0, window_height()/2):
+            b.hideturtle()
+        else:
+            b.fd(BLT_SPEED)
+    ontimer(objects_move, 20)
 
 def main():
     reg_shape_plane("blue", "b_plane_shape")
     reg_shape_plane("green", "g_plane_shape")
     global p1, p2
-    global bs
-    bs = []
+    global blt_list1, blt_list2
+    blt_list1 = []
+    blt_list2 = []
     p1 = Turtle()
     p1.shape("b_plane_shape")
     p2 = Turtle()
