@@ -2,6 +2,7 @@
 """This is mydemo.py, a test for turtle.py"""
 
 from turtle import *
+import os
 
 PLANE_SPEED = 5
 BLT_SPEED = 30
@@ -21,7 +22,7 @@ def new_bullet(blt_list, plane):
         b.up()
         b.shapesize(0.2, 0.2)
     else:
-        # reuse bullet 0
+        # re-use bullet 0
         b = blt_list.pop(0)
         b.hideturtle()
     b.setpos(plane.xcor(), plane.ycor())
@@ -57,6 +58,22 @@ def in_range(x, cx, dx):
     else:
         return True
 
+def check_life(b, plane, life_list):
+    if in_range(b.xcor(), plane.xcor(), 15) and \
+        in_range(b.ycor(), plane.ycor(), 15):
+        for x in range(6):
+            plane.showturtle()
+            plane.right(60)
+            plane.hideturtle()
+        if len(life_list) == 0:
+            print("Game Over !")
+            return False
+        id = life_list.pop(0)
+        plane.clearstamp(id)
+        plane.home()
+        plane.showturtle()
+    return True
+
 def objects_move():
     global running
     running = True
@@ -85,17 +102,22 @@ def objects_move():
         update()
     p2.fd(PLANE_SPEED)
     for b in blt_list1:
+        if check_life(b, p2, life_list2) == False:
+            return
         if not in_range(b.xcor(), 0, window_width()/2) or \
             not in_range(b.ycor(), 0, window_height()/2):
             b.hideturtle()
         else:
             b.fd(BLT_SPEED)
     for b in blt_list2:
+        if check_life(b, p1, life_list1) == False:
+            return
         if not in_range(b.xcor(), 0, window_width()/2) or \
             not in_range(b.ycor(), 0, window_height()/2):
             b.hideturtle()
         else:
             b.fd(BLT_SPEED)
+    # repeat moving
     ontimer(objects_move, 20)
 
 def main():
@@ -103,19 +125,40 @@ def main():
     reg_shape_plane("green", "g_plane_shape")
     global p1, p2
     global blt_list1, blt_list2
+    global life_list1, life_list2
     blt_list1 = []
     blt_list2 = []
-    p1 = Turtle()
+    life_list1 = []
+    life_list2 = []
+    p1 = Turtle(visible=False)
     p1.shape("b_plane_shape")
-    p2 = Turtle()
-    p2.shape("g_plane_shape")
-    onkeyrelease(p1_fire, "Up")
-    onkeyrelease(p2_fire, "w")
-    onkeyrelease(p1_turn_left, "Left")
-    onkeyrelease(p1_turn_right, "Right")
+    p1.up()
+    p1.goto(-window_width()/2 + 30, window_height()/2 - 30)
+    for i in range(3):
+        s_id = p1.stamp()
+        life_list1.append(s_id)
+        p1.fd(20)
+    p1.setheading(270)
+    p1.showturtle()
 
-    onkeyrelease(p2_turn_left, "a")
-    onkeyrelease(p2_turn_right, "d")
+    p2 = Turtle(visible=False)
+    p2.shape("g_plane_shape")
+    p2.up()
+    p2.goto(window_width()/2 - 90, window_height()/2 - 30)
+    for i in range(3):
+        id = p2.stamp()
+        life_list2.append(id)
+        p2.fd(20)
+    p2.setheading(270)
+    p2.showturtle()
+
+    onkeyrelease(p1_fire, "space")
+    onkeyrelease(p1_turn_left, "a")
+    onkeyrelease(p1_turn_right, "d")
+
+    onkeyrelease(p2_fire, "Return")
+    onkeyrelease(p2_turn_left, "Left")
+    onkeyrelease(p2_turn_right, "Right")
     listen()
     p1.up()
     p2.up()
