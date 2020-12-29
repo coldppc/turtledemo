@@ -17,11 +17,13 @@ def reg_shape_plane(color, shape_name):
     s.addcomponent(poly2, color, color)
     register_shape(shape_name, s)
 
+
 def reg_shape_missle():
-    s = Shape ("compound")
+    s = Shape("compound")
     poly = ((0, 5), (15, 0), (0, -5))
     s.addcomponent(poly, "red")
     register_shape("missle", s)
+
 
 def new_bullet(blt_list, plane):
     tracer(2)
@@ -39,6 +41,7 @@ def new_bullet(blt_list, plane):
     blt_list.append(b)
     tracer(1)
 
+
 def new_missle(misl_list, plane):
     tracer(2)
     if len(misl_list) < 2:
@@ -53,42 +56,54 @@ def new_missle(misl_list, plane):
     misl_list.append(m)
     tracer(1)
 
+
 def p1_shoot():
     new_bullet(blt_list1, p1)
+
 
 def p2_shoot():
     new_bullet(blt_list2, p2)
 
+
 def p1_fire():
     new_missle(misl_list1, p1)
+
 
 def p2_fire():
     new_missle(misl_list2, p2)
 
+
 def p1_turn_left():
     p1.left(10)
+
 
 def p1_turn_right():
     p1.right(10)
 
+
 def p2_turn_left():
     p2.left(10)
+
 
 def p2_turn_right():
     p2.right(10)
 
+
 """
 my pos (x, y), center (cx,cy), delta x and delta y (dx,dy)
 """
+
+
 def in_range(x, cx, dx):
     if (x <= cx - dx) or (x >= cx + dx):
         return False
     else:
         return True
 
+
 def check_life(b, plane, life_list):
     if in_range(b.xcor(), plane.xcor(), 20) and \
-        in_range(b.ycor(), plane.ycor(), 20):
+            in_range(b.ycor(), plane.ycor(), 20):
         for x in range(6):
             plane.showturtle()
             plane.right(60)
@@ -98,56 +113,58 @@ def check_life(b, plane, life_list):
             return False
         id = life_list.pop(0)
         plane.clearstamp(id)
-        plane.setx (random.uniform(-window_width()/2, window_width()/2))
-        plane.sety (random.uniform(-window_height()/2, window_height()/2))
+        plane.setx(random.uniform(-window_width() / 2, window_width() / 2))
+        plane.sety(random.uniform(-window_height() / 2, window_height() / 2))
         plane.showturtle()
     return True
+
 
 def objects_move():
     global running
     running = True
     if not running:
         return
-    if not in_range(p1.xcor(), 0, window_width()/2):
+    if not in_range(p1.xcor(), 0, window_width() / 2):
         tracer(2)
         p1.setx(-p1.xcor())
         tracer(1)
         update()
-    if not in_range(p1.ycor(), 0, window_height()/2):
+    if not in_range(p1.ycor(), 0, window_height() / 2):
         tracer(2)
         p1.sety(-p1.ycor())
         tracer(1)
         update()
     p1.fd(PLANE_SPEED)
-    if p2.xcor() >= window_width()/2 or p2.xcor() <= -window_width()/2:
+    if p2.xcor() >= window_width() / 2 or p2.xcor() <= -window_width() / 2:
         tracer(2, 100)
         p2.setx(-p2.xcor())
-        tracer(1,10)
+        tracer(1, 10)
         update()
-    if p2.ycor() >= window_height()/2 or p2.ycor() <= -window_height()/2:
+    if p2.ycor() >= window_height() / 2 or p2.ycor() <= -window_height() / 2:
         tracer(2, 100)
         p2.sety(-p2.ycor())
-        tracer(1,10)
+        tracer(1, 10)
         update()
     p2.fd(PLANE_SPEED)
     for b in blt_list1:
         if check_life(b, p2, life_list2) == False:
             return
-        if not in_range(b.xcor(), 0, window_width()/2) or \
-            not in_range(b.ycor(), 0, window_height()/2):
+        if not in_range(b.xcor(), 0, window_width() / 2) or \
+                not in_range(b.ycor(), 0, window_height() / 2):
             b.hideturtle()
         else:
             b.fd(BLT_SPEED)
     for b in blt_list2:
         if check_life(b, p1, life_list1) == False:
             return
-        if not in_range(b.xcor(), 0, window_width()/2) or \
-            not in_range(b.ycor(), 0, window_height()/2):
+        if not in_range(b.xcor(), 0, window_width() / 2) or \
+                not in_range(b.ycor(), 0, window_height() / 2):
             b.hideturtle()
         else:
             b.fd(BLT_SPEED)
     # repeat moving
     ontimer(objects_move, 20)
+
 
 def main():
     reg_shape_plane("blue", "b_plane_shape")
@@ -162,12 +179,12 @@ def main():
     life_list1 = []
     life_list2 = []
 
-    screensize(1800,800)
+    screensize(1800, 800)
 
     p1 = Turtle(visible=False)
     p1.shape("b_plane_shape")
     p1.up()
-    p1.goto(-window_width()/2 + 30, window_height()/2 - 30)
+    p1.goto(-window_width() / 2 + 30, window_height() / 2 - 30)
     for i in range(3):
         s_id = p1.stamp()
         life_list1.append(s_id)
@@ -178,7 +195,7 @@ def main():
     p2 = Turtle(visible=False)
     p2.shape("g_plane_shape")
     p2.up()
-    p2.goto(window_width()/2 - 150, window_height()/2 - 30)
+    p2.goto(window_width() / 2 - 150, window_height() / 2 - 30)
     for i in range(3):
         id = p2.stamp()
         life_list2.append(id)
@@ -199,6 +216,7 @@ def main():
     objects_move()
 
     return "EVENTLOOP"
+
 
 if __name__ == '__main__':
     msg = main()
