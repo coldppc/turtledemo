@@ -5,7 +5,9 @@ from turtle import *
 import random
 
 PLANE_SPEED = 5
-BLT_SPEED = 30
+BLT_SPEED = 20
+MSLE_SPEED = 20
+
 
 def reg_shape_plane(color, shape_name):
     s = Shape("compound")
@@ -14,6 +16,12 @@ def reg_shape_plane(color, shape_name):
     poly2 = ((0, -4), (10, -16), (-10, -16))
     s.addcomponent(poly2, color, color)
     register_shape(shape_name, s)
+
+def reg_shape_missle():
+    s = Shape ("compound")
+    poly = ((0, 5), (15, 0), (0, -5))
+    s.addcomponent(poly, "red")
+    register_shape("missle", s)
 
 def new_bullet(blt_list, plane):
     tracer(2)
@@ -31,11 +39,31 @@ def new_bullet(blt_list, plane):
     blt_list.append(b)
     tracer(1)
 
-def p1_fire():
+def new_missle(misl_list, plane):
+    tracer(2)
+    if len(misl_list) < 2:
+        m = Turtle(visible=False)
+        m.up()
+    else:
+        m = misl_list.pop(0)
+        m.hideturtle()
+    m.setpos(plane.xcor(), plane.ycor())
+    m.setheading(plane.heading())
+    m.showturtle()
+    misl_list.append(m)
+    tracer(1)
+
+def p1_shoot():
     new_bullet(blt_list1, p1)
 
-def p2_fire():
+def p2_shoot():
     new_bullet(blt_list2, p2)
+
+def p1_fire():
+    new_missle(misl_list1, p1)
+
+def p2_fire():
+    new_missle(misl_list2, p2)
 
 def p1_turn_left():
     p1.left(10)
@@ -125,10 +153,12 @@ def main():
     reg_shape_plane("blue", "b_plane_shape")
     reg_shape_plane("green", "g_plane_shape")
     global p1, p2
-    global blt_list1, blt_list2
+    global blt_list1, blt_list2, misl_list1, misl_list2
     global life_list1, life_list2
     blt_list1 = []
     blt_list2 = []
+    misl_list1 = []
+    misl_list2 = []
     life_list1 = []
     life_list2 = []
 
@@ -156,11 +186,11 @@ def main():
     p2.setheading(270)
     p2.showturtle()
 
-    onkeyrelease(p1_fire, "space")
+    onkeyrelease(p1_shoot, "space")
     onkeyrelease(p1_turn_left, "a")
     onkeyrelease(p1_turn_right, "d")
 
-    onkeyrelease(p2_fire, "Return")
+    onkeyrelease(p2_shoot, "Return")
     onkeyrelease(p2_turn_left, "Left")
     onkeyrelease(p2_turn_right, "Right")
     listen()
