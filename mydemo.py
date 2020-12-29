@@ -2,16 +2,16 @@
 """This is mydemo.py, a test for turtle.py"""
 
 from turtle import *
-import os
+import random
 
 PLANE_SPEED = 5
 BLT_SPEED = 30
 
 def reg_shape_plane(color, shape_name):
     s = Shape("compound")
-    poly1 = ((0, -2), (10, -5), (0, 10), (-10, -5))
+    poly1 = ((0, -4), (20, -10), (0, 20), (-20, -10))
     s.addcomponent(poly1, color, color)
-    poly2 = ((0, -2), (5, -8), (-5, -8))
+    poly2 = ((0, -4), (10, -16), (-10, -16))
     s.addcomponent(poly2, color, color)
     register_shape(shape_name, s)
 
@@ -20,7 +20,7 @@ def new_bullet(blt_list, plane):
     if len(blt_list) < 2:
         b = Turtle(visible=False)
         b.up()
-        b.shapesize(0.2, 0.2)
+        b.shapesize(0.5, 0.5)
     else:
         # re-use bullet 0
         b = blt_list.pop(0)
@@ -59,8 +59,8 @@ def in_range(x, cx, dx):
         return True
 
 def check_life(b, plane, life_list):
-    if in_range(b.xcor(), plane.xcor(), 15) and \
-        in_range(b.ycor(), plane.ycor(), 15):
+    if in_range(b.xcor(), plane.xcor(), 20) and \
+        in_range(b.ycor(), plane.ycor(), 20):
         for x in range(6):
             plane.showturtle()
             plane.right(60)
@@ -70,7 +70,8 @@ def check_life(b, plane, life_list):
             return False
         id = life_list.pop(0)
         plane.clearstamp(id)
-        plane.home()
+        plane.setx (random.uniform(-window_width()/2, window_width()/2))
+        plane.sety (random.uniform(-window_height()/2, window_height()/2))
         plane.showturtle()
     return True
 
@@ -130,6 +131,9 @@ def main():
     blt_list2 = []
     life_list1 = []
     life_list2 = []
+
+    screensize(1800,800)
+
     p1 = Turtle(visible=False)
     p1.shape("b_plane_shape")
     p1.up()
@@ -137,18 +141,18 @@ def main():
     for i in range(3):
         s_id = p1.stamp()
         life_list1.append(s_id)
-        p1.fd(20)
+        p1.fd(40)
     p1.setheading(270)
     p1.showturtle()
 
     p2 = Turtle(visible=False)
     p2.shape("g_plane_shape")
     p2.up()
-    p2.goto(window_width()/2 - 90, window_height()/2 - 30)
+    p2.goto(window_width()/2 - 150, window_height()/2 - 30)
     for i in range(3):
         id = p2.stamp()
         life_list2.append(id)
-        p2.fd(20)
+        p2.fd(40)
     p2.setheading(270)
     p2.showturtle()
 
