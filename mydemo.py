@@ -5,9 +5,9 @@ from turtle import *
 import random
 import math
 
-PLANE_SPEED = 5
-BLT_SPEED = 20
-MSLE_SPEED = 15
+PLANE_SPEED = 4
+BLT_SPEED = 16
+MSLE_SPEED = 8
 MSLE_TURN = 3 # missile turn degree
 
 def reg_shape_plane(color, shape_name):
@@ -25,7 +25,7 @@ def reg_shape_missle():
     register_shape("missle", s)
 
 def new_bullet(blt_list, plane):
-    tracer(2)
+    #tracer(2)
     if len(blt_list) < 2:
         b = Turtle(visible=False)
         b.up()
@@ -38,10 +38,10 @@ def new_bullet(blt_list, plane):
     b.setheading(plane.heading())
     b.showturtle()
     blt_list.append(b)
-    tracer(1)
+    #tracer(1)
 
 def new_missle(misl_list, plane):
-    tracer(2)
+    #tracer(2)
     if len(misl_list) < 2:
         m = Turtle(visible=False)
         m.shape("missle")
@@ -55,7 +55,7 @@ def new_missle(misl_list, plane):
         if found:
             misl_list.remove(m)
         else:
-            tracer(1)
+            #tracer(1)
             return
         #   m = misl_list.pop(0)
         m.hideturtle()
@@ -64,7 +64,7 @@ def new_missle(misl_list, plane):
     m.setheading(plane.heading())
     m.showturtle()
     misl_list.append(m)
-    tracer(1)
+    #tracer(1)
 
 
 def p1_shoot():
@@ -136,26 +136,28 @@ def left_or_right(m, p, log=False):
 
 def objects_move():
     if not in_range(p1.xcor(), 0, window_width() / 2):
-        tracer(2)
+        #tracer(2)
         p1.setx(-p1.xcor())
-        tracer(1)
-        update()
+        #tracer(1)
+        #update()
     if not in_range(p1.ycor(), 0, window_height() / 2):
-        tracer(2)
+        #tracer(2)
         p1.sety(-p1.ycor())
-        tracer(1)
-        update()
+        #tracer(1)
+        #update()
     p1.fd(PLANE_SPEED)
+
     if p2.xcor() >= window_width() / 2 or p2.xcor() <= -window_width() / 2:
-        tracer(2, 100)
+        #tracer(2, 100)
         p2.setx(-p2.xcor())
-        tracer(1, 10)
-        update()
+        #tracer(1, 10)
+        #update()
     if p2.ycor() >= window_height() / 2 or p2.ycor() <= -window_height() / 2:
-        tracer(2, 100)
+        #tracer(2, 100)
         p2.sety(-p2.ycor())
-        tracer(1, 10)
-        update()
+        #tracer(1, 10)
+        #update()
+
     p2.fd(PLANE_SPEED)
 
     for wpn in blt_list1 + misl_list1:
@@ -188,7 +190,8 @@ def objects_move():
             wpn.fd(MSLE_SPEED)
 
     # repeat moving
-    ontimer(objects_move, 20)
+    update()
+    ontimer(objects_move, 30) # 33.3 frame per second
 
 def main():
     reg_shape_plane("blue", "b_plane_shape")
@@ -203,6 +206,8 @@ def main():
     misl_list2 = []
     life_list1 = []
     life_list2 = []
+
+    tracer(False)
 
     p1 = Turtle(visible=False)
     p1.shape("b_plane_shape")
