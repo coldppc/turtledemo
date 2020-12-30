@@ -47,8 +47,19 @@ def new_missle(misl_list, plane):
         m.shape("missle")
         m.up()
     else:
-        m = misl_list.pop(0)
+        found = False
+        for m in misl_list:
+            if not m.isvisible():
+                found = True
+                break
+        if found:
+            misl_list.remove(m)
+        else:
+            tracer(1)
+            return
+        #   m = misl_list.pop(0)
         m.hideturtle()
+
     m.setpos(plane.xcor(), plane.ycor())
     m.setheading(plane.heading())
     m.showturtle()
