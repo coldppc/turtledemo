@@ -6,9 +6,10 @@ import random
 import math
 
 PLANE_SPEED = 4
-BLT_SPEED = 16
-MSLE_SPEED = 8
-MSLE_TURN = 3 # missile turn degree
+TURBO_SPEED = PLANE_SPEED * 2
+BLT_SPEED = PLANE_SPEED * 4
+MSLE_SPEED = PLANE_SPEED * 2
+MSLE_TURN = 2.2 # missile turn degree
 
 def reg_shape_plane(color, shape_name):
     s = Shape("compound")
@@ -91,6 +92,10 @@ def p2_turn_left():
 def p2_turn_right():
     p2.right(10)
 
+def p1_turbo():
+    global p1_isturbo
+    p1_isturbo = True
+
 """
 my pos (x, y), center (cx,cy), delta x and delta y (dx,dy)
 """
@@ -145,7 +150,11 @@ def objects_move():
         p1.sety(-p1.ycor())
         #tracer(1)
         #update()
-    p1.fd(PLANE_SPEED)
+    if p1_isturbo == True:
+        print("p1_is turbo")
+        p1.fd(TURBO_SPEED)
+    else:
+        p1.fd(PLANE_SPEED)
 
     if p2.xcor() >= window_width() / 2 or p2.xcor() <= -window_width() / 2:
         #tracer(2, 100)
@@ -197,9 +206,11 @@ def main():
     reg_shape_plane("blue", "b_plane_shape")
     reg_shape_plane("green", "g_plane_shape")
     reg_shape_missle()
-    global p1, p2
+    global p1, p2, p1_isturbo, p2_isturbo
     global blt_list1, blt_list2, misl_list1, misl_list2
     global life_list1, life_list2
+    p1_isturbo = False
+    p2_isturbo = False
     blt_list1 = []
     blt_list2 = []
     misl_list1 = []
@@ -235,10 +246,13 @@ def main():
     onkeyrelease(p1_turn_right, "d")
     onkeyrelease(p1_shoot, "space")
     onkeyrelease(p1_fire, "s")
+    onkeyrelease(p1_turbo, "w")
+
     onkeyrelease(p2_turn_left, "Left")
     onkeyrelease(p2_turn_right, "Right")
     onkeyrelease(p2_shoot, "Return")
     onkeyrelease(p2_fire, "Down")
+    #onkeyrelease(p2_turbo, "Up")
     listen()
 
     objects_move()
