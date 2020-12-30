@@ -3,11 +3,12 @@
 
 from turtle import *
 import random
+import math
 
 PLANE_SPEED = 5
 BLT_SPEED = 20
-MSLE_SPEED = 20
-
+MSLE_SPEED = 15
+MSLE_TURN = 3 # missile turn degree
 
 def reg_shape_plane(color, shape_name):
     s = Shape("compound")
@@ -17,13 +18,11 @@ def reg_shape_plane(color, shape_name):
     s.addcomponent(poly2, color, color)
     register_shape(shape_name, s)
 
-
 def reg_shape_missle():
     s = Shape("compound")
-    poly = ((0, 5), (15, 0), (0, -5))
+    poly = ((-5, 0), (0, 15), (5, 0))
     s.addcomponent(poly, "red")
     register_shape("missle", s)
-
 
 def new_bullet(blt_list, plane):
     tracer(2)
@@ -41,11 +40,11 @@ def new_bullet(blt_list, plane):
     blt_list.append(b)
     tracer(1)
 
-
 def new_missle(misl_list, plane):
     tracer(2)
     if len(misl_list) < 2:
         m = Turtle(visible=False)
+        m.shape("missle")
         m.up()
     else:
         m = misl_list.pop(0)
@@ -60,48 +59,37 @@ def new_missle(misl_list, plane):
 def p1_shoot():
     new_bullet(blt_list1, p1)
 
-
 def p2_shoot():
     new_bullet(blt_list2, p2)
-
 
 def p1_fire():
     new_missle(misl_list1, p1)
 
-
 def p2_fire():
     new_missle(misl_list2, p2)
-
 
 def p1_turn_left():
     p1.left(10)
 
-
 def p1_turn_right():
     p1.right(10)
-
 
 def p2_turn_left():
     p2.left(10)
 
-
 def p2_turn_right():
     p2.right(10)
-
 
 """
 my pos (x, y), center (cx,cy), delta x and delta y (dx,dy)
 """
-
-
 def in_range(x, cx, dx):
     if (x <= cx - dx) or (x >= cx + dx):
         return False
     else:
         return True
 
-
-def check_life(b, plane, life_list):
+def check_life( b, plane, life_list):
     if in_range(b.xcor(), plane.xcor(), 20) and \
             in_range(b.ycor(), plane.ycor(), 20):
         for x in range(6):
@@ -118,12 +106,24 @@ def check_life(b, plane, life_list):
         plane.showturtle()
     return True
 
+"""Return True if should turn left"""
+def left_or_right(m, p, log=False):
+    beta = math.atan2(p.ycor() - m.ycor(), p.xcor() - m.xcor())
+    beta = math.degrees(beta)
+    turn_left_angle = 360 - m.heading() + beta
+    if turn_left_angle > 360:
+        turn_left_angle -= 360
+    if turn_left_angle < 0:
+        turn_left_angle += 360
+    if log:
+        print ("m(%d, %d) p(%d, %d) beta:%d mheading:%d TL_angle:%d" %
+           (m.xcor(), m.ycor(), p.xcor(), p.ycor(), beta, m.heading(), turn_left_angle))
+    if turn_left_angle < 180:
+        return True
+    else:
+        return False
 
 def objects_move():
-    global running
-    running = True
-    if not running:
-        return
     if not in_range(p1.xcor(), 0, window_width() / 2):
         tracer(2)
         p1.setx(-p1.xcor())
@@ -146,29 +146,43 @@ def objects_move():
         tracer(1, 10)
         update()
     p2.fd(PLANE_SPEED)
-    for b in blt_list1:
-        if check_life(b, p2, life_list2) == False:
+
+    for wpn in blt_list1 + misl_list1:
+        if check_life(wpn, p2, life_list2) == False:
             return
-        if not in_range(b.xcor(), 0, window_width() / 2) or \
-                not in_range(b.ycor(), 0, window_height() / 2):
-            b.hideturtle()
-        else:
-            b.fd(BLT_SPEED)
-    for b in blt_list2:
-        if check_life(b, p1, life_list1) == False:
+        if not in_range(wpn.xcor(), 0, window_width() / 2) or \
+                not in_range(wpn.ycor(), 0, window_height() / 2):
+            wpn.hideturtle()
+        elif wpn in blt_list1:
+            wpn.fd(BLT_SPEED)
+        else: # wpn is missile
+            if left_or_right(wpn, p2):
+                wpn.left(MSLE_TURN)
+            else:
+                wpn.right(MSLE_TURN)
+            wpn.fd(MSLE_SPEED)
+    for wpn in blt_list2 + misl_list2:
+        if check_life(wpn, p1, life_list1) == False:
             return
-        if not in_range(b.xcor(), 0, window_width() / 2) or \
-                not in_range(b.ycor(), 0, window_height() / 2):
-            b.hideturtle()
-        else:
-            b.fd(BLT_SPEED)
+        if not in_range(wpn.xcor(), 0, window_width() / 2) or \
+                not in_range(wpn.ycor(), 0, window_height() / 2):
+            wpn.hideturtle()
+        elif wpn in blt_list2:
+            wpn.fd(BLT_SPEED)
+        else: # wpn is missile
+            if left_or_right(wpn, p1):
+                wpn.left(MSLE_TURN)
+            else:
+                wpn.right(MSLE_TURN)
+            wpn.fd(MSLE_SPEED)
+
     # repeat moving
     ontimer(objects_move, 20)
-
 
 def main():
     reg_shape_plane("blue", "b_plane_shape")
     reg_shape_plane("green", "g_plane_shape")
+    reg_shape_missle()
     global p1, p2
     global blt_list1, blt_list2, misl_list1, misl_list2
     global life_list1, life_list2
@@ -178,8 +192,6 @@ def main():
     misl_list2 = []
     life_list1 = []
     life_list2 = []
-
-    screensize(1800, 800)
 
     p1 = Turtle(visible=False)
     p1.shape("b_plane_shape")
@@ -203,20 +215,19 @@ def main():
     p2.setheading(270)
     p2.showturtle()
 
-    onkeyrelease(p1_shoot, "space")
     onkeyrelease(p1_turn_left, "a")
     onkeyrelease(p1_turn_right, "d")
-
-    onkeyrelease(p2_shoot, "Return")
+    onkeyrelease(p1_shoot, "space")
+    onkeyrelease(p1_fire, "s")
     onkeyrelease(p2_turn_left, "Left")
     onkeyrelease(p2_turn_right, "Right")
+    onkeyrelease(p2_shoot, "Return")
+    onkeyrelease(p2_fire, "Down")
     listen()
-    p1.up()
-    p2.up()
+
     objects_move()
 
     return "EVENTLOOP"
-
 
 if __name__ == '__main__':
     msg = main()
