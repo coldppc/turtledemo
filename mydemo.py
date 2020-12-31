@@ -134,10 +134,12 @@ def check_life( b, plane, life_list):
         in_range(b.ycor(), plane.ycor(), HIT_RANGE):
         b.hideturtle()
         s = plane.shape()
+        tracer(1, 30)
         for x in range(1, 11):
             pic = "pics/expo-%d.gif" % x
             plane.shape(pic)
             update()
+        tracer(False)
         plane.shape(s)
         plane.hideturtle()
         if len(life_list) == 0:
