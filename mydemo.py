@@ -133,10 +133,13 @@ def check_life( b, plane, life_list):
     if in_range(b.xcor(), plane.xcor(), HIT_RANGE) and \
         in_range(b.ycor(), plane.ycor(), HIT_RANGE):
         b.hideturtle()
-        for x in range(6):
-            plane.showturtle()
-            plane.right(60)
-            plane.hideturtle()
+        s = plane.shape()
+        for x in range(1, 11):
+            pic = "pics/expo-%d.gif" % x
+            plane.shape(pic)
+            update()
+        plane.shape(s)
+        plane.hideturtle()
         if len(life_list) == 0:
             return False
         id = life_list.pop(0)
@@ -219,6 +222,9 @@ def main():
     reg_shape_plane("green", "g_plane_shape")
     reg_shape_missle("blue", "b_missile")
     reg_shape_missle("green", "g_missile")
+    for x in range(1, 11):
+        pic = "pics/expo-%d.gif" % x
+        register_shape(pic)
     global p1, p2, p1_state, p2_state
     global blt_list1, blt_list2, misl_list1, misl_list2
     global life_list1, life_list2
