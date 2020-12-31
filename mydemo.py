@@ -9,28 +9,30 @@ PLANE_SPEED = 4
 TURBO_SPEED = PLANE_SPEED * 2
 BLT_SPEED = PLANE_SPEED * 4
 MSLE_SPEED = PLANE_SPEED * 2
-MSLE_TURN = 2.2 # missile turn degree
+MSLE_TURN = 2 # missile turn degree
+HIT_RANGE = 15
 
 def reg_shape_plane(color, shape_name):
     s = Shape("compound")
-    poly1 = ((0, -4), (20, -10), (0, 20), (-20, -10))
+    poly1 = ((0, 20), (-4, -8), (0, -6), (4, -8))
     s.addcomponent(poly1, color, color)
-    poly2 = ((0, -4), (10, -16), (-10, -16))
+    poly2 = ((0, 16), (-12, -2), (12, -2))
     s.addcomponent(poly2, color, color)
     register_shape(shape_name, s)
 
-def reg_shape_missle():
+def reg_shape_missle(color, shape_name):
     s = Shape("compound")
-    poly = ((-5, 0), (0, 15), (5, 0))
-    s.addcomponent(poly, "red")
-    register_shape("missle", s)
+    poly = ((-1, 0), (0, 12), (1, 0))
+    s.addcomponent(poly, color)
+    register_shape(shape_name, s)
 
 def new_bullet(blt_list, plane):
-    #tracer(2)
     if len(blt_list) < 2:
         b = Turtle(visible=False)
         b.up()
-        b.shapesize(0.5, 0.5)
+        b.shapesize(0.15)
+        b.fillcolor("black")
+        b.shape("circle")
     else:
         # re-use bullet 0
         b = blt_list.pop(0)
@@ -39,13 +41,14 @@ def new_bullet(blt_list, plane):
     b.setheading(plane.heading())
     b.showturtle()
     blt_list.append(b)
-    #tracer(1)
 
 def new_missle(misl_list, plane):
-    #tracer(2)
     if len(misl_list) < 2:
         m = Turtle(visible=False)
-        m.shape("missle")
+        if plane.shape() == "g_plane_shape":
+            m.shape("g_missile")
+        else:
+            m.shape("b_missile")
         m.up()
     else:
         found = False
@@ -56,16 +59,15 @@ def new_missle(misl_list, plane):
         if found:
             misl_list.remove(m)
         else:
-            #tracer(1)
             return
-        #   m = misl_list.pop(0)
+
         m.hideturtle()
 
     m.setpos(plane.xcor(), plane.ycor())
     m.setheading(plane.heading())
     m.showturtle()
     misl_list.append(m)
-    #tracer(1)
+
 
 
 def p1_shoot():
@@ -93,8 +95,30 @@ def p2_turn_right():
     p2.right(10)
 
 def p1_turbo():
-    global p1_isturbo
-    p1_isturbo = True
+    global p1_state
+    if p1_state == 0:
+        p1_state = 1
+        ontimer(p1_turbo, 1000)
+        onkeyrelease(None, "w")
+    elif p1_state == 1:
+        p1_state = 2
+        ontimer (p1_turbo, 4000)
+    elif p1_state == 2:
+        p1_state = 0
+        onkeyrelease(p1_turbo, "w")
+
+def p2_turbo():
+    global p2_state
+    if p2_state == 0:
+        p2_state = 1
+        ontimer(p2_turbo, 1000)
+        onkeyrelease(None, "Up")
+    elif p2_state == 1:
+        p2_state = 2
+        ontimer (p2_turbo, 4000)
+    elif p2_state == 2:
+        p2_state = 0
+        onkeyrelease(p2_turbo, "Up")
 
 """
 my pos (x, y), center (cx,cy), delta x and delta y (dx,dy)
@@ -106,14 +130,14 @@ def in_range(x, cx, dx):
         return True
 
 def check_life( b, plane, life_list):
-    if in_range(b.xcor(), plane.xcor(), 20) and \
-            in_range(b.ycor(), plane.ycor(), 20):
+    if in_range(b.xcor(), plane.xcor(), HIT_RANGE) and \
+        in_range(b.ycor(), plane.ycor(), HIT_RANGE):
+        b.hideturtle()
         for x in range(6):
             plane.showturtle()
             plane.right(60)
             plane.hideturtle()
         if len(life_list) == 0:
-            print("Game Over !")
             return False
         id = life_list.pop(0)
         plane.clearstamp(id)
@@ -141,33 +165,22 @@ def left_or_right(m, p, log=False):
 
 def objects_move():
     if not in_range(p1.xcor(), 0, window_width() / 2):
-        #tracer(2)
         p1.setx(-p1.xcor())
-        #tracer(1)
-        #update()
     if not in_range(p1.ycor(), 0, window_height() / 2):
-        #tracer(2)
         p1.sety(-p1.ycor())
-        #tracer(1)
-        #update()
-    if p1_isturbo == True:
-        print("p1_is turbo")
-        p1.fd(TURBO_SPEED)
+    if p1_state == 1:
+       p1.fd(TURBO_SPEED)
     else:
         p1.fd(PLANE_SPEED)
 
     if p2.xcor() >= window_width() / 2 or p2.xcor() <= -window_width() / 2:
-        #tracer(2, 100)
         p2.setx(-p2.xcor())
-        #tracer(1, 10)
-        #update()
     if p2.ycor() >= window_height() / 2 or p2.ycor() <= -window_height() / 2:
-        #tracer(2, 100)
         p2.sety(-p2.ycor())
-        #tracer(1, 10)
-        #update()
-
-    p2.fd(PLANE_SPEED)
+    if p2_state == 1:
+        p2.fd(TURBO_SPEED)
+    else:
+        p2.fd(PLANE_SPEED)
 
     for wpn in blt_list1 + misl_list1:
         if check_life(wpn, p2, life_list2) == False:
@@ -198,19 +211,19 @@ def objects_move():
                 wpn.right(MSLE_TURN)
             wpn.fd(MSLE_SPEED)
 
-    # repeat moving
     update()
     ontimer(objects_move, 30) # 33.3 frame per second
 
 def main():
     reg_shape_plane("blue", "b_plane_shape")
     reg_shape_plane("green", "g_plane_shape")
-    reg_shape_missle()
-    global p1, p2, p1_isturbo, p2_isturbo
+    reg_shape_missle("blue", "b_missile")
+    reg_shape_missle("green", "g_missile")
+    global p1, p2, p1_state, p2_state
     global blt_list1, blt_list2, misl_list1, misl_list2
     global life_list1, life_list2
-    p1_isturbo = False
-    p2_isturbo = False
+    p1_state = 0
+    p2_state = 0
     blt_list1 = []
     blt_list2 = []
     misl_list1 = []
@@ -224,21 +237,22 @@ def main():
     p1.shape("b_plane_shape")
     p1.up()
     p1.goto(-window_width() / 2 + 30, window_height() / 2 - 30)
-    for i in range(3):
+    for i in range(4):
         s_id = p1.stamp()
         life_list1.append(s_id)
-        p1.fd(40)
+        p1.fd(30)
     p1.setheading(270)
     p1.showturtle()
 
     p2 = Turtle(visible=False)
     p2.shape("g_plane_shape")
     p2.up()
-    p2.goto(window_width() / 2 - 150, window_height() / 2 - 30)
-    for i in range(3):
+    p2.goto(window_width() / 2 - 30, window_height() / 2 - 30)
+    p2.setheading(180)
+    for i in range(4):
         id = p2.stamp()
         life_list2.append(id)
-        p2.fd(40)
+        p2.fd(30)
     p2.setheading(270)
     p2.showturtle()
 
@@ -252,7 +266,7 @@ def main():
     onkeyrelease(p2_turn_right, "Right")
     onkeyrelease(p2_shoot, "Return")
     onkeyrelease(p2_fire, "Down")
-    #onkeyrelease(p2_turbo, "Up")
+    onkeyrelease(p2_turbo, "Up")
     listen()
 
     objects_move()
