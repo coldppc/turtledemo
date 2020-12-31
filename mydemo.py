@@ -112,13 +112,13 @@ def p2_turbo():
     if p2_state == 0:
         p2_state = 1
         ontimer(p2_turbo, 1000)
-        onkeyrelease(None, "Up")
+        onkeyrelease(None, "Return")
     elif p2_state == 1:
         p2_state = 2
         ontimer (p2_turbo, 4000)
     elif p2_state == 2:
         p2_state = 0
-        onkeyrelease(p2_turbo, "Up")
+        onkeyrelease(p2_turbo, "Return")
 
 """
 my pos (x, y), center (cx,cy), delta x and delta y (dx,dy)
@@ -270,9 +270,9 @@ def main():
 
     onkeyrelease(p2_turn_left, "Left")
     onkeyrelease(p2_turn_right, "Right")
-    onkeyrelease(p2_shoot, "Return")
+    onkeyrelease(p2_shoot, "Up")
     onkeyrelease(p2_fire, "Down")
-    onkeyrelease(p2_turbo, "Up")
+    onkeyrelease(p2_turbo, "Return")
     listen()
 
     objects_move()
