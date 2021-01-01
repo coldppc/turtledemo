@@ -4,6 +4,8 @@
 from turtle import *
 import random
 import math
+import time
+from evdev import list_devices, InputDevice, ecodes
 
 PLANE_SPEED = 4
 TURBO_SPEED = PLANE_SPEED * 2
@@ -77,10 +79,18 @@ def p2_shoot():
     new_bullet(blt_list2, p2)
 
 def p1_fire():
-    new_missle(misl_list1, p1)
+    global last_fire_time1
+    t = time.time()
+    if t - last_fire_time1 > 0.5:
+        new_missle(misl_list1, p1)
+        last_fire_time1 = t
 
 def p2_fire():
-    new_missle(misl_list2, p2)
+    global last_fire_time2
+    t = time.time()
+    if t - last_fire_time2 > 0.5:
+        new_missle(misl_list2, p2)
+        last_fire_time2 = t
 
 def p1_turn_left():
     p1.left(10)
@@ -99,26 +109,26 @@ def p1_turbo():
     if p1_state == 0:
         p1_state = 1
         ontimer(p1_turbo, 1000)
-        onkeyrelease(None, "w")
+        onkey(None, "w")
     elif p1_state == 1:
         p1_state = 2
         ontimer (p1_turbo, 4000)
     elif p1_state == 2:
         p1_state = 0
-        onkeyrelease(p1_turbo, "w")
+        onkey(p1_turbo, "w")
 
 def p2_turbo():
     global p2_state
     if p2_state == 0:
         p2_state = 1
         ontimer(p2_turbo, 1000)
-        onkeyrelease(None, "Return")
+        onkey(None, "Return")
     elif p2_state == 1:
         p2_state = 2
         ontimer (p2_turbo, 4000)
     elif p2_state == 2:
         p2_state = 0
-        onkeyrelease(p2_turbo, "Return")
+        onkey(p2_turbo, "Return")
 
 """
 my pos (x, y), center (cx,cy), delta x and delta y (dx,dy)
@@ -219,6 +229,41 @@ def objects_move():
     update()
     ontimer(objects_move, 30) # 33.3 frame per second
 
+def find_gamepad():
+    global gamepads
+    gamepads = []
+    for path in list_devices():
+#   for path in ['/dev/input/event7', '/dev/input/event8']:
+        dev = InputDevice(path)
+        if dev.name == "USB Gamepad ":
+            print(dev.path, dev.name, dev.phys)
+            gamepads.append(dev)
+    return gamepads
+
+def do_gamepad():
+    global gamepads
+    for d in gamepads:
+        keys = d.active_keys()
+	for key in keys:
+            if key == ecodes.BTN_THUMB: #"A"
+                if d is gamepads[0]: p1_shoot()
+                else: p2_shoot()
+            elif key == ecodes.BTN_THUMB2: #"B"
+		if d is gamepads[0]: p1_fire()
+                else: p2_fire()
+            elif key == ecodes.BTN_PINKIE: #"R-TRIG"
+                if d is gamepads[0]: p1_turbo()
+                else: p2_turbo()
+        pad = d.absinfo(ecodes.ABS_X)
+        if pad.value == 0:
+            if d is gamepads[0]: p1_turn_left()
+            else: p2_turn_left()
+        elif pad.value == 255:
+            if d is gamepads[0]: p1_turn_right()
+            else: p2_turn_right()
+    # schedule for next checking
+    ontimer(do_gamepad, 100)
+
 def main():
     reg_shape_plane("blue", "b_plane_shape")
     reg_shape_plane("green", "g_plane_shape")
@@ -230,6 +275,9 @@ def main():
     global p1, p2, p1_state, p2_state
     global blt_list1, blt_list2, misl_list1, misl_list2
     global life_list1, life_list2
+    global gamepads
+    global last_fire_time1, last_fire_time2
+    last_fire_time1 = last_fire_time2 = 0
     p1_state = 0
     p2_state = 0
     blt_list1 = []
@@ -264,18 +312,22 @@ def main():
     p2.setheading(270)
     p2.showturtle()
 
-    onkeyrelease(p1_turn_left, "a")
-    onkeyrelease(p1_turn_right, "d")
-    onkeyrelease(p1_shoot, "space")
-    onkeyrelease(p1_fire, "s")
-    onkeyrelease(p1_turbo, "w")
+    onkey(p1_turn_left, "a")
+    onkey(p1_turn_right, "d")
+    onkey(p1_shoot, "space")
+    onkey(p1_fire, "s")
+    onkey(p1_turbo, "w")
 
-    onkeyrelease(p2_turn_left, "Left")
-    onkeyrelease(p2_turn_right, "Right")
-    onkeyrelease(p2_shoot, "Up")
-    onkeyrelease(p2_fire, "Down")
-    onkeyrelease(p2_turbo, "Return")
+    onkey(p2_turn_left, "Left")
+    onkey(p2_turn_right, "Right")
+    onkey(p2_shoot, "Up")
+    onkey(p2_fire, "Down")
+    onkey(p2_turbo, "Return")
     listen()
+
+    gamepads = find_gamepad()
+    if len(gamepads):
+	do_gamepad()
 
     objects_move()
 
