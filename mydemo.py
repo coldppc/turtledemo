@@ -198,6 +198,8 @@ def objects_move():
         p2.fd(PLANE_SPEED)
 
     for wpn in blt_list1 + misl_list1:
+        if not wpn.isvisible():
+            pass
         if check_life(wpn, p2, life_list2) == False:
             return
         if not in_range(wpn.xcor(), 0, window_width() / 2) or \
@@ -212,6 +214,8 @@ def objects_move():
                 wpn.right(MSLE_TURN)
             wpn.fd(MSLE_SPEED)
     for wpn in blt_list2 + misl_list2:
+        if not wpn.isvisible():
+            pass
         if check_life(wpn, p1, life_list1) == False:
             return
         if not in_range(wpn.xcor(), 0, window_width() / 2) or \
