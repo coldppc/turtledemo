@@ -246,6 +246,7 @@ def find_gamepad():
 
 def do_gamepad():
     global gamepads
+    global p1_state, p2_state # 0:Normal / 1:Turbo / 2:Restore
     for d in gamepads:
         keys = d.active_keys()
 	for key in keys:
@@ -256,8 +257,10 @@ def do_gamepad():
 		if d is gamepads[0]: p1_fire()
                 else: p2_fire()
             elif key == ecodes.BTN_PINKIE: #"R-TRIG"
-                if d is gamepads[0]: p1_turbo()
-                else: p2_turbo()
+                if d is gamepads[0]:
+                    if p1_state == 0: p1_turbo()
+                else:
+                    if p2_state == 0: p2_turbo()
         pad = d.absinfo(ecodes.ABS_X)
         if pad.value == 0:
             if d is gamepads[0]: p1_turn_left()
