@@ -5,7 +5,9 @@ from turtle import *
 import random
 import math
 import time
-from evdev import list_devices, InputDevice, ecodes
+import platform
+if platform.system() == 'Linux':
+    from evdev import list_devices, InputDevice, ecodes
 
 PLANE_SPEED = 4
 TURBO_SPEED = PLANE_SPEED * 2
@@ -29,23 +31,29 @@ def reg_shape_missle(color, shape_name):
     register_shape(shape_name, s)
 
 def new_bullet(blt_list, plane):
-    if len(blt_list) < 2:
+    got_blt = False
+    if len(blt_list) < 5:
         b = Turtle(visible=False)
+        got_blt = True
         b.up()
         b.shapesize(0.15)
         b.fillcolor("black")
         b.shape("circle")
-    else:
-        # re-use bullet 0
-        b = blt_list.pop(0)
-        b.hideturtle()
+    else: # re-use hidden bullet
+        for b in blt_list:
+            if not b.isvisible():
+                got_blt = True
+                blt_list.remove(b)
+                break
+    if not got_blt:
+        return
     b.setpos(plane.xcor(), plane.ycor())
     b.setheading(plane.heading())
     b.showturtle()
     blt_list.append(b)
 
 def new_missle(misl_list, plane):
-    if len(misl_list) < 2:
+    if len(misl_list) < 3:
         m = Turtle(visible=False)
         if plane.shape() == "g_plane_shape":
             m.shape("g_missile")
@@ -62,8 +70,6 @@ def new_missle(misl_list, plane):
             misl_list.remove(m)
         else:
             return
-
-        m.hideturtle()
 
     m.setpos(plane.xcor(), plane.ycor())
     m.setheading(plane.heading())
@@ -144,12 +150,12 @@ def check_life( b, plane, life_list):
         in_range(b.ycor(), plane.ycor(), HIT_RANGE):
         b.hideturtle()
         s = plane.shape()
-        tracer(1, 30)
+        #tracer(1, 30)
         for x in range(1, 11):
             pic = "pics/expo-%d.gif" % x
             plane.shape(pic)
             update()
-        tracer(False)
+        #tracer(False)
         plane.shape(s)
         plane.hideturtle()
         if len(life_list) == 0:
@@ -201,7 +207,11 @@ def objects_move():
         if not wpn.isvisible():
             pass
         if check_life(wpn, p2, life_list2) == False:
-            return
+            hideturtle()
+            write("BLUE WON !!!", align="center", font=("Arial", 32, "normal"))
+            update()
+            getscreen().exitonclick()
+            return False
         if not in_range(wpn.xcor(), 0, window_width() / 2) or \
                 not in_range(wpn.ycor(), 0, window_height() / 2):
             wpn.hideturtle()
@@ -217,7 +227,12 @@ def objects_move():
         if not wpn.isvisible():
             pass
         if check_life(wpn, p1, life_list1) == False:
-            return
+            w = Turtle(visible=False)
+            w.write("GREEN WON !!!", align="center", font=("Arial", 32, "normal"))
+            w.hideturtle()
+            update()
+            getscreen().exitonclick()
+            return False
         if not in_range(wpn.xcor(), 0, window_width() / 2) or \
                 not in_range(wpn.ycor(), 0, window_height() / 2):
             wpn.hideturtle()
@@ -232,44 +247,52 @@ def objects_move():
 
     update()
     ontimer(objects_move, 30) # 33.3 frame per second
+    return True
 
-def find_gamepad():
-    global gamepads
-    gamepads = []
-    for path in list_devices():
-#   for path in ['/dev/input/event7', '/dev/input/event8']:
-        dev = InputDevice(path)
-        if dev.name == "USB Gamepad ":
-            print(dev.path, dev.name, dev.phys)
-            gamepads.append(dev)
-    return gamepads
+if platform.system() == 'Linux':
+    def find_gamepad():
+        global gamepads
+        gamepads = []
+        for path in list_devices():
+        #   for path in ['/dev/input/event7', '/dev/input/event8']:
+            dev = InputDevice(path)
+            if dev.name == "USB Gamepad ":
+                print(dev.path, dev.name, dev.phys)
+                gamepads.append(dev)
+        return gamepads
 
-def do_gamepad():
-    global gamepads
-    global p1_state, p2_state # 0:Normal / 1:Turbo / 2:Restore
-    for d in gamepads:
-        keys = d.active_keys()
-	for key in keys:
-            if key == ecodes.BTN_THUMB: #"A"
-                if d is gamepads[0]: p1_shoot()
-                else: p2_shoot()
-            elif key == ecodes.BTN_THUMB2: #"B"
-		if d is gamepads[0]: p1_fire()
-                else: p2_fire()
-            elif key == ecodes.BTN_PINKIE: #"R-TRIG"
-                if d is gamepads[0]:
-                    if p1_state == 0: p1_turbo()
-                else:
-                    if p2_state == 0: p2_turbo()
-        pad = d.absinfo(ecodes.ABS_X)
-        if pad.value == 0:
-            if d is gamepads[0]: p1_turn_left()
-            else: p2_turn_left()
-        elif pad.value == 255:
-            if d is gamepads[0]: p1_turn_right()
-            else: p2_turn_right()
-    # schedule for next checking
-    ontimer(do_gamepad, 100)
+    def do_gamepad():
+        global gamepads
+        global p1_state, p2_state # 0:Normal / 1:Turbo / 2:Restore
+        for d in gamepads:
+            keys = d.active_keys()
+            for key in keys:
+                if key == ecodes.BTN_THUMB: #"A"
+                    if d is gamepads[0]: p1_shoot()
+                    else: p2_shoot()
+                elif key == ecodes.BTN_THUMB2: #"B"
+                    if d is gamepads[0]: p1_fire()
+                    else: p2_fire()
+                elif key == ecodes.BTN_PINKIE: #"R-TRIG"
+                    if d is gamepads[0]:
+                        if p1_state == 0: p1_turbo()
+                    else:
+                        if p2_state == 0: p2_turbo()
+            pad = d.absinfo(ecodes.ABS_X)
+            if pad.value == 0:
+                if d is gamepads[0]: p1_turn_left()
+                else: p2_turn_left()
+            elif pad.value == 255:
+                if d is gamepads[0]: p1_turn_right()
+                else: p2_turn_right()
+        # schedule for next checking
+        ontimer(do_gamepad, 100)
+else:
+    def find_gamepad():
+        return []
+
+    def do_gamepad():
+        pass
 
 def main():
     reg_shape_plane("blue", "b_plane_shape")
@@ -334,7 +357,7 @@ def main():
 
     gamepads = find_gamepad()
     if len(gamepads):
-	do_gamepad()
+        do_gamepad()
 
     objects_move()
 
