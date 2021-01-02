@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from evdev import list_devices, InputDevice, categorize, ecodes
 from select import select
 import time
@@ -43,7 +45,7 @@ def active_check():
 	while True:
 		keys = dev.active_keys()
 		if len(keys):
-			print keys
+			print(keys)
 		pad = dev.absinfo(ecodes.ABS_X)
 		if pad.value != 127:
 			print ("DPAD X: ",  pad.value)
@@ -59,61 +61,62 @@ def print_event(event):
 		#print(categorize(event))
 		#print(event.code, event.value)
 		if (event.code == ecodes.BTN_THUMB and event.value == 1):
-			print "KEY A pressed"
+			print ("KEY A pressed")
 		elif (event.code == ecodes.BTN_THUMB and event.value == 0):
-			print "KEY A released"
+			print ("KEY A released")
 		elif (event.code == ecodes.BTN_THUMB2 and event.value == 1):
-			print "KEY B pressed"
+			print ("KEY B pressed")
 		elif (event.code == ecodes.BTN_THUMB2 and event.value == 0):
-			print "KEY B released"
+			print ("KEY B released")
 
 		if (event.code == ecodes.BTN_JOYSTICK and event.value == 1):
-			print "KEY X pressed"
+			print ("KEY X pressed")
 		elif (event.code == ecodes.BTN_JOYSTICK and event.value == 0):
-			print "KEY X released"
+			print ("KEY X released")
 		elif (event.code == ecodes.BTN_TOP and event.value == 1):
-			print "KEY Y pressed"
+			print ("KEY Y pressed")
 		elif (event.code == ecodes.BTN_TOP and event.value == 0):
-			print "KEY Y released"
+			print ("KEY Y released")
 
 		if (event.code == ecodes.BTN_BASE4 and event.value == 1):
-			print "KEY START pressed"
+			print ("KEY START pressed")
 		elif (event.code == ecodes.BTN_BASE4 and event.value == 0):
-			print "KEY START released"
+			print ("KEY START released")
 		elif (event.code == ecodes.BTN_BASE3 and event.value == 1):
-			print "KEY SELECT pressed"
+			print ("KEY SELECT pressed")
 		elif (event.code == ecodes.BTN_BASE3 and event.value == 0):
-			print "KEY SELECT released"
+			print ("KEY SELECT released")
 
 		if (event.code == ecodes.BTN_PINKIE and event.value == 1):
-			print "KEY R-TRIG pressed"
+			print ("KEY R-TRIG pressed")
 		elif (event.code == ecodes.BTN_PINKIE and event.value == 0):
-			print "KEY R-TRIG released"
+			print ("KEY R-TRIG released")
 		elif (event.code == ecodes.BTN_TOP2 and event.value == 1):
-			print "KEY L-TRIG pressed"
+			print ("KEY L-TRIG pressed")
 		elif (event.code == ecodes.BTN_TOP2 and event.value == 0):
-			print "KEY L-TRIG released"
+			print ("KEY L-TRIG released")
 
 	if event.type == ecodes.EV_ABS:
 		if (event.code == ecodes.ABS_X and event.value == 0):
-			print "DPAD LEFT pressed"
+			print ("DPAD LEFT pressed")
 		elif (event.code == ecodes.ABS_X and event.value == 127):
-			print "DPAD released"
+			print ("DPAD released")
 		elif (event.code == ecodes.ABS_X and event.value == 255):
-			print "DPAD RIGHT pressed"
+			print ("DPAD RIGHT pressed")
 		#print(event.code, event.value)
 		elif (event.code == ecodes.ABS_Y and event.value == 0):
-			print "DPAD UP pressed"
+			print ("DPAD UP pressed")
 		elif (event.code == ecodes.ABS_Y and event.value == 127):
-			print "DPAD released"
+			print ("DPAD released")
 		elif (event.code == ecodes.ABS_Y and event.value == 255):
-			print "DPAD DOWN pressed"
+			print ("DPAD DOWN pressed")
+
 
 def main():
-	#list_devs()
+	list_devs()
 	#loop_events()
-	#select_events()
-	active_check()
+	select_events()
+	#active_check()
 
 
 main()
