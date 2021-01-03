@@ -142,13 +142,13 @@ def p2_turbo():
     if p2_state == 0:
         p2_state = 1
         ontimer(p2_turbo, 1000)
-        onkey(None, "Return")
+        onkey(None, "Up")
     elif p2_state == 1:
         p2_state = 2
         ontimer (p2_turbo, 4000)
     elif p2_state == 2:
         p2_state = 0
-        onkey(p2_turbo, "Return")
+        onkey(p2_turbo, "Up")
 
 def plane_explode(p):
     global life_list1, life_list2
