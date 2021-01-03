@@ -13,7 +13,8 @@ PLANE_SPEED = 4
 TURBO_SPEED = PLANE_SPEED * 2
 BLT_SPEED = PLANE_SPEED * 4
 MSLE_SPEED = PLANE_SPEED * 2
-MSLE_TURN = 2 # missile turn degree
+MSLE_LIFE = 8
+MSLE_TURN = 2.5 # missile turn degree
 HIT_RANGE = 15
 
 def reg_shape_plane(color, shape_name):
@@ -53,7 +54,7 @@ def new_bullet(blt_list, plane):
     blt_list.append(b)
 
 def new_missle(misl_list, plane):
-    if len(misl_list) < 3:
+    if len(misl_list) < 2:
         m = Turtle(visible=False)
         if plane.shape() == "g_plane_shape":
             m.shape("g_missile")
@@ -67,16 +68,23 @@ def new_missle(misl_list, plane):
                 found = True
                 break
         if found:
+            index = misl_list.index(m)
             misl_list.remove(m)
+            if misl_list == misl_list1:
+                mtime_list1.pop(index)
+            else:
+                mtime_list2.pop(index)
         else:
             return
-
     m.setpos(plane.xcor(), plane.ycor())
     m.setheading(plane.heading())
     m.showturtle()
+    t = time.time()
     misl_list.append(m)
-
-
+    if misl_list == misl_list1:
+        mtime_list1.append(t)
+    else:
+        mtime_list2.append(t)
 
 def p1_shoot():
     if p1.isvisible():
@@ -236,10 +244,13 @@ def objects_move():
         p2.sety(-p2.ycor())
 
     for wpn in blt_list1 + misl_list1:
-        if not in_range(wpn.xcor(), 0, window_width() / 2) or \
+        if not wpn.isvisible():
+            continue
+        # wpn is valid
+        elif not in_range(wpn.xcor(), 0, window_width() / 2) or \
             not in_range(wpn.ycor(), 0, window_height() / 2):
             wpn.hideturtle()
-            pass # out of range
+            continue # out of range
         elif wpn in blt_list1:
             wpn.fd(BLT_SPEED)
         else: # wpn is missile
@@ -248,6 +259,10 @@ def objects_move():
             else:
                 wpn.right(MSLE_TURN)
             wpn.fd(MSLE_SPEED)
+            index = misl_list1.index(wpn)
+            if time.time() - mtime_list1[index] > MSLE_LIFE:
+                wpn.hideturtle()
+
         # check weapon vs plane2
         if in_range(wpn.xcor(), p2.xcor(), HIT_RANGE) and \
                 in_range(wpn.ycor(), p2.ycor(), HIT_RANGE):
@@ -256,13 +271,15 @@ def objects_move():
             if len(life_list2) == 0:
                 hideturtle()
                 write("BLUE WON !!!", align="center", font=("Arial", 32, "normal"))
-                #getscreen().exitonclick()
 
     for wpn in blt_list2 + misl_list2:
+        if not wpn.isvisible():
+            continue
+        # wpn is valid
         if not in_range(wpn.xcor(), 0, window_width() / 2) or \
             not in_range(wpn.ycor(), 0, window_height() / 2):
             wpn.hideturtle()
-            pass # out of range
+            continue # out of range
         elif wpn in blt_list2:
             wpn.fd(BLT_SPEED)
         else: # wpn is missile
@@ -271,6 +288,10 @@ def objects_move():
             else:
                 wpn.right(MSLE_TURN)
             wpn.fd(MSLE_SPEED)
+            index = misl_list2.index(wpn)
+            if time.time() - mtime_list2[index] > MSLE_LIFE:
+                wpn.hideturtle()
+
         # check weapon vs plane1
         if in_range(wpn.xcor(), p1.xcor(), HIT_RANGE) and \
                 in_range(wpn.ycor(), p1.ycor(), HIT_RANGE):
@@ -342,11 +363,13 @@ def main():
     global life_list1, life_list2
     global gamepads
     global last_fire_time1, last_fire_time2
-    global game_over
+    global mtime_list1, mtime_list2
     game_over = False
     last_fire_time1 = last_fire_time2 = 0
     p1_state = 0
     p2_state = 0
+    mtime_list1 = []
+    mtime_list2 = []
     blt_list1 = []
     blt_list2 = []
     misl_list1 = []
@@ -360,7 +383,7 @@ def main():
     p1.shape("b_plane_shape")
     p1.up()
     p1.goto(-window_width() / 2 + 30, window_height() / 2 - 30)
-    for i in range(1):
+    for i in range(4):
         s_id = p1.stamp()
         life_list1.append(s_id)
         p1.fd(30)
@@ -372,7 +395,7 @@ def main():
     p2.up()
     p2.goto(window_width() / 2 - 30, window_height() / 2 - 30)
     p2.setheading(180)
-    for i in range(1):
+    for i in range(4):
         id = p2.stamp()
         life_list2.append(id)
         p2.fd(30)
@@ -387,9 +410,9 @@ def main():
 
     onkey(p2_turn_left, "Left")
     onkey(p2_turn_right, "Right")
-    onkey(p2_shoot, "Up")
+    onkey(p2_shoot, "Return")
     onkey(p2_fire, "Down")
-    onkey(p2_turbo, "Return")
+    onkey(p2_turbo, "Up")
     listen()
 
     gamepads = find_gamepad()
