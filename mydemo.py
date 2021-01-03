@@ -136,6 +136,45 @@ def p2_turbo():
         p2_state = 0
         onkey(p2_turbo, "Return")
 
+def plane_explode(p):
+    global game_over
+    global life_list1, life_list2
+    global p1_state, p2_state
+    px_state = p1_state if p == p1 else p2_state
+    #print("px_state:%d" % px_state)
+    if px_state >= 11 and px_state <= 20:
+        if p == p1:
+            if not p.shape() == "b_plane_shape":
+                p.shape("b_plane_shape")
+                return
+        if p == p2:
+            if not p.shape() == "g_plane_shape":
+                p.shape("g_plane_shape")
+                return
+        pic = "pics/expo-%d.gif" % (px_state - 10)
+        p.shape(pic)
+        px_state = px_state + 1
+        if p == p1: p1_state += 1
+        else: p2_state += 1
+        if px_state == 21:
+            p.hideturtle()
+            if p == p1: p1_state = 0
+            else: p2_state = 0
+            if len(life_list1) == 0 or len(life_list2) == 0:
+                game_over = True
+                return
+            if p == p1:
+                p.shape("b_plane_shape")
+                id = life_list1.pop(0)
+            else:
+                p.shape("g_plane_shape")
+                id = life_list2.pop(0)
+            p.clearstamp(id)
+            p.setx(random.uniform(-window_width() / 2, window_width() / 2))
+            p.sety(random.uniform(-window_height() / 2, window_height() / 2))
+            p.showturtle()
+    return
+
 """
 my pos (x, y), center (cx,cy), delta x and delta y (dx,dy)
 """
@@ -145,27 +184,17 @@ def in_range(x, cx, dx):
     else:
         return True
 
-def check_life( b, plane, life_list):
+def check_hit(b, plane):
+    global p1_state, p2_state
     if in_range(b.xcor(), plane.xcor(), HIT_RANGE) and \
         in_range(b.ycor(), plane.ycor(), HIT_RANGE):
         b.hideturtle()
-        s = plane.shape()
-        #tracer(1, 30)
-        for x in range(1, 11):
-            pic = "pics/expo-%d.gif" % x
-            plane.shape(pic)
-            update()
-        #tracer(False)
-        plane.shape(s)
-        plane.hideturtle()
-        if len(life_list) == 0:
-            return False
-        id = life_list.pop(0)
-        plane.clearstamp(id)
-        plane.setx(random.uniform(-window_width() / 2, window_width() / 2))
-        plane.sety(random.uniform(-window_height() / 2, window_height() / 2))
-        plane.showturtle()
-    return True
+        if plane == p1:
+            p1_state = 11
+            p1_explode()
+        else:
+            p2_state = 11
+            p2_explode()
 
 """Return True if should turn left"""
 def left_or_right(m, p, log=False):
@@ -185,36 +214,48 @@ def left_or_right(m, p, log=False):
         return False
 
 def objects_move():
+    global game_over, p1_state, p2_state
+    if game_over:
+        hideturtle()
+        if len(life_list2):
+            write("GREEN WON !!!", align="center", font=("Arial", 32, "normal"))
+        else:
+            write("BLUE WON !!!", align="center", font=("Arial", 32, "normal"))
+        update()
+        getscreen().exitonclick()
+        return
+
+    if p1_state == 1:
+       p1.fd(TURBO_SPEED)
+    elif p1_state == 0 or p1_state == 2:
+        p1.fd(PLANE_SPEED)
+    elif p1_state >= 11 and p1_state <= 20:
+        p1.fd(PLANE_SPEED)
+        plane_explode(p1)
+
     if not in_range(p1.xcor(), 0, window_width() / 2):
         p1.setx(-p1.xcor())
     if not in_range(p1.ycor(), 0, window_height() / 2):
         p1.sety(-p1.ycor())
-    if p1_state == 1:
-       p1.fd(TURBO_SPEED)
-    else:
-        p1.fd(PLANE_SPEED)
+
+    if p2_state == 1:
+       p2.fd(TURBO_SPEED)
+    elif p2_state == 0 or p2_state == 2:
+        p2.fd(PLANE_SPEED)
+    elif p2_state >= 11 and p2_state <= 20:
+        p2.fd(PLANE_SPEED)
+        plane_explode(p2)
 
     if p2.xcor() >= window_width() / 2 or p2.xcor() <= -window_width() / 2:
         p2.setx(-p2.xcor())
     if p2.ycor() >= window_height() / 2 or p2.ycor() <= -window_height() / 2:
         p2.sety(-p2.ycor())
-    if p2_state == 1:
-        p2.fd(TURBO_SPEED)
-    else:
-        p2.fd(PLANE_SPEED)
 
     for wpn in blt_list1 + misl_list1:
-        if not wpn.isvisible():
-            pass
-        if check_life(wpn, p2, life_list2) == False:
-            hideturtle()
-            write("BLUE WON !!!", align="center", font=("Arial", 32, "normal"))
-            update()
-            getscreen().exitonclick()
-            return False
         if not in_range(wpn.xcor(), 0, window_width() / 2) or \
-                not in_range(wpn.ycor(), 0, window_height() / 2):
+            not in_range(wpn.ycor(), 0, window_height() / 2):
             wpn.hideturtle()
+            pass # out of range
         elif wpn in blt_list1:
             wpn.fd(BLT_SPEED)
         else: # wpn is missile
@@ -223,19 +264,17 @@ def objects_move():
             else:
                 wpn.right(MSLE_TURN)
             wpn.fd(MSLE_SPEED)
-    for wpn in blt_list2 + misl_list2:
-        if not wpn.isvisible():
-            pass
-        if check_life(wpn, p1, life_list1) == False:
-            w = Turtle(visible=False)
-            w.write("GREEN WON !!!", align="center", font=("Arial", 32, "normal"))
-            w.hideturtle()
-            update()
-            getscreen().exitonclick()
-            return False
-        if not in_range(wpn.xcor(), 0, window_width() / 2) or \
-                not in_range(wpn.ycor(), 0, window_height() / 2):
+        # check weapon vs plane2
+        if in_range(wpn.xcor(), p2.xcor(), HIT_RANGE) and \
+                in_range(wpn.ycor(), p2.ycor(), HIT_RANGE):
             wpn.hideturtle()
+            p2_state = 11
+
+    for wpn in blt_list2 + misl_list2:
+        if not in_range(wpn.xcor(), 0, window_width() / 2) or \
+            not in_range(wpn.ycor(), 0, window_height() / 2):
+            wpn.hideturtle()
+            pass # out of range
         elif wpn in blt_list2:
             wpn.fd(BLT_SPEED)
         else: # wpn is missile
@@ -244,10 +283,15 @@ def objects_move():
             else:
                 wpn.right(MSLE_TURN)
             wpn.fd(MSLE_SPEED)
+        # check weapon vs plane1
+        if in_range(wpn.xcor(), p1.xcor(), HIT_RANGE) and \
+                in_range(wpn.ycor(), p1.ycor(), HIT_RANGE):
+            wpn.hideturtle()
+            p1_state = 11
 
     update()
     ontimer(objects_move, 30) # 33.3 frame per second
-    return True
+    return
 
 if platform.system() == 'Linux':
     def find_gamepad():
@@ -307,6 +351,8 @@ def main():
     global life_list1, life_list2
     global gamepads
     global last_fire_time1, last_fire_time2
+    global game_over
+    game_over = False
     last_fire_time1 = last_fire_time2 = 0
     p1_state = 0
     p2_state = 0
