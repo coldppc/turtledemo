@@ -79,13 +79,17 @@ def new_missle(misl_list, plane):
 
 
 def p1_shoot():
-    new_bullet(blt_list1, p1)
+    if p1.isvisible():
+        new_bullet(blt_list1, p1)
 
 def p2_shoot():
-    new_bullet(blt_list2, p2)
+    if p2.isvisible():
+        new_bullet(blt_list2, p2)
 
 def p1_fire():
     global last_fire_time1
+    if not p1.isvisible():
+        return
     t = time.time()
     if t - last_fire_time1 > 0.5:
         new_missle(misl_list1, p1)
@@ -93,6 +97,8 @@ def p1_fire():
 
 def p2_fire():
     global last_fire_time2
+    if not p2.isvisible():
+        return
     t = time.time()
     if t - last_fire_time2 > 0.5:
         new_missle(misl_list2, p2)
@@ -137,7 +143,6 @@ def p2_turbo():
         onkey(p2_turbo, "Return")
 
 def plane_explode(p):
-    global game_over
     global life_list1, life_list2
     global p1_state, p2_state
     px_state = p1_state if p == p1 else p2_state
@@ -161,7 +166,7 @@ def plane_explode(p):
             if p == p1: p1_state = 0
             else: p2_state = 0
             if len(life_list1) == 0 or len(life_list2) == 0:
-                game_over = True
+                #getscreen().exitonclick()
                 return
             if p == p1:
                 p.shape("b_plane_shape")
@@ -184,18 +189,6 @@ def in_range(x, cx, dx):
     else:
         return True
 
-def check_hit(b, plane):
-    global p1_state, p2_state
-    if in_range(b.xcor(), plane.xcor(), HIT_RANGE) and \
-        in_range(b.ycor(), plane.ycor(), HIT_RANGE):
-        b.hideturtle()
-        if plane == p1:
-            p1_state = 11
-            p1_explode()
-        else:
-            p2_state = 11
-            p2_explode()
-
 """Return True if should turn left"""
 def left_or_right(m, p, log=False):
     beta = math.atan2(p.ycor() - m.ycor(), p.xcor() - m.xcor())
@@ -214,16 +207,7 @@ def left_or_right(m, p, log=False):
         return False
 
 def objects_move():
-    global game_over, p1_state, p2_state
-    if game_over:
-        hideturtle()
-        if len(life_list2):
-            write("GREEN WON !!!", align="center", font=("Arial", 32, "normal"))
-        else:
-            write("BLUE WON !!!", align="center", font=("Arial", 32, "normal"))
-        update()
-        getscreen().exitonclick()
-        return
+    global p1_state, p2_state
 
     if p1_state == 1:
        p1.fd(TURBO_SPEED)
@@ -269,6 +253,10 @@ def objects_move():
                 in_range(wpn.ycor(), p2.ycor(), HIT_RANGE):
             wpn.hideturtle()
             p2_state = 11
+            if len(life_list2) == 0:
+                hideturtle()
+                write("BLUE WON !!!", align="center", font=("Arial", 32, "normal"))
+                #getscreen().exitonclick()
 
     for wpn in blt_list2 + misl_list2:
         if not in_range(wpn.xcor(), 0, window_width() / 2) or \
@@ -288,6 +276,9 @@ def objects_move():
                 in_range(wpn.ycor(), p1.ycor(), HIT_RANGE):
             wpn.hideturtle()
             p1_state = 11
+            if len(life_list1) == 0:
+                hideturtle()
+                write("GREEN WON !!!", align="center", font=("Arial", 32, "normal"))
 
     update()
     ontimer(objects_move, 30) # 33.3 frame per second
@@ -369,7 +360,7 @@ def main():
     p1.shape("b_plane_shape")
     p1.up()
     p1.goto(-window_width() / 2 + 30, window_height() / 2 - 30)
-    for i in range(4):
+    for i in range(1):
         s_id = p1.stamp()
         life_list1.append(s_id)
         p1.fd(30)
@@ -381,7 +372,7 @@ def main():
     p2.up()
     p2.goto(window_width() / 2 - 30, window_height() / 2 - 30)
     p2.setheading(180)
-    for i in range(4):
+    for i in range(1):
         id = p2.stamp()
         life_list2.append(id)
         p2.fd(30)
@@ -411,5 +402,4 @@ def main():
 
 if __name__ == '__main__':
     msg = main()
-    print(msg)
     mainloop()
