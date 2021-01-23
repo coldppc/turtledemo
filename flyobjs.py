@@ -17,36 +17,50 @@ HIT_RANGE = 15
 
 team_color = {1: "blue", 2: "green", 3: "Orange"}
 
+
 class Flyobj(Turtle):
+    """ flying turtle class """
     def __init__(self, team_id):
         Turtle.__init__(self)
+        self.state = 0  # READY:0, BORN:1, FLY:2, EXPLODE:3, TURBO:4
+        self.state_start = None  # start time of the state
+        self.team_id = team_id
+        self.shapes = {}  # shape dict
         if team_id == 1:
             self.shape("turtle")
         else:
             self.shape("circle")
-        self.team_id = team_id
-        self.state = 0
-        self.alive = True
         self.up()
-    def reg_shaps(self):
-        '''registe all shapes used by this obj'''
+
+    def reg_shape(self, state, pic_prefix):
+        """shape is string in dict, register all shapes used by this obj"""
         pass
+
+    def get_shape(self, state, st_time):
+        """get shape name from dict"""
+        pass
+
     def do_myjob(self):
+        """Move, change shape, check collision, switch state"""
         if self.team_id == 1:
             self.fd(5)
         else:
             self.fd(8)
 
+
 class Plane(Flyobj):
+    """ Plane can turbo speed, has clone count, has life limit"""
     states = ["FLYING", "TURBO", "RESTORE", "EXPLODE" ]
     def __init__(self, team_id):
-        self.lives = 5
+        self.clone = 5
+        self.life = 100  # 0 ~ 100 percent
         up()
+
     def do_myjob(self):
-        '''
+        """
         FLYING/TURBO/RESTORE-> Get keypad input,
         EXPLODE-> Change shape
-        '''
+        """
         #print(self.do_myjob.__doc__)
         fd(PLANE_SPEED)
 
@@ -58,10 +72,12 @@ class Missile(Flyobj):
         shapesize(5)
         fillcolor("red")
         shape("turtle")
+
     def do_myjob(self):
-        '''
+        """
         FLYING-> Turn to target, check hit,
-        EXPLODE-> Change shape'''
+        EXPLODE-> Change shape
+        """
         fd(MSLE_SPEED)
 
 class Bullet(Flyobj):
@@ -73,7 +89,7 @@ class Bullet(Flyobj):
         fillcolor("black")
         shape("circle")
     def do_myjob(self):
-        '''FLYING-> check hit to all planes, missiles'''
+        """FLYING-> check hit to all planes, missiles"""
         fd(BLT_SPEED)
 
 def run():
