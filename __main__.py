@@ -317,7 +317,7 @@ class DemoWindow(object):
     def loadfile(self, filename):
         self.clearCanvas()
         turtle.TurtleScreen._RUNNING = False
-        modname = 'turtledemo.' + filename
+        modname = filename #'turtledemo.' + filename
         __import__(modname)
         self.module = sys.modules[modname]
         with open(self.module.__file__, 'r') as f:
