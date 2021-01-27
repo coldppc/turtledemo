@@ -31,6 +31,8 @@ class Flyobj(Turtle):
         self.fillcolor(self.team)
         self.shapes = []  # shape set
         self.paces = dict()  # state:speed dict
+        self.turn_pace = 0  # turn degree per tick
+        self.target = (None, None)  # target pos(x,y)
         self.up()
 
     def reg_static_shape(self, state, polys):
@@ -73,12 +75,39 @@ class Flyobj(Turtle):
         # change shape now
         self.shape(self.get_shape(self.state, ticks - self.state_start))
 
+    def turn_left(self, x, y):
+        """Return True if (x,y) in the left"""
+        beta = math.atan2(y - self.ycor(), x - self.xcor())
+        beta = math.degrees(beta)
+        turn_left_angle = 360 - self.heading() + beta
+        if turn_left_angle > 360:
+            turn_left_angle -= 360
+        if turn_left_angle < 0:
+            turn_left_angle += 360
+        if turn_left_angle < 180:
+            return True
+        else:
+            return False
+
+    def move(self, target_x=None, target_y=None):
+        if (target_x is None) or (target_y is None):
+            pass
+        else:  # Rotate to target
+            if self.turn_left(target_x, target_y):
+                self.left(self.turn_pace)
+            else:
+                self.right(self.turn_pace)
+        # forward
+        self.fd(self.paces[self.state])
+
+
     def do_job(self):
         """Move, change shape, check collision, switch state"""
         if self.state != "READY":
-            self.fd(self.paces[self.state])
+            self.move(self.target[0], self.target[1])
         if self.state == "EXPLODE":
             self.shape(self.get_shape(self.state, ticks - self.state_start))
+            self.move(self.target[0], self.target[1])
 
 
 class Plane(Flyobj):
@@ -90,8 +119,7 @@ class Plane(Flyobj):
         super().__init__(team)
         self.clone = 5
         self.life = 100  # 0 ~ 100 percent
-        #self.state = "FLY"
-        #self.shape("turtle")
+        self.turn_pace = 3
         self.paces = {"READY": 0, "BORN": 0, "FLY": PLANE_SPEED, "TURBO": TURBO_SPEED, "EXPLODE": PLANE_SPEED}
         self.reg_static_shape("FLY", [((0, 20), (-4, -8), (0, -6), (4, -8)), ((0, 16), (-12, -2), (12, -2))])
         self.reg_static_shape("TURBO", [((0, 20), (-4, -8), (0, -6), (4, -8)), ((0, 16), (-12, -2), (12, -2))])
@@ -104,9 +132,9 @@ class Plane(Flyobj):
         FLYING/TURBO/RESTORE-> Get keypad input,
         EXPLODE-> Change shape
         """
-        if (ticks / FPS) < 3:
+        if (ticks / FPS) < 10:
             self.switch_state("TURBO")
-        elif (ticks / FPS) < 6:
+        elif (ticks / FPS) < 20:
             self.switch_state("FLY")
         else:
             self.switch_state("EXPLODE")
@@ -120,6 +148,7 @@ class Missile(Flyobj):
         self.state = "FLY"
         self.reg_static_shape("FLY", [((-1, 0), (0, 12), (1, 0))])
         self.reg_dynamic_shape("EXPLODE", "", 10)
+        self.turn_pace = 2.5
         self.paces = {"READY": 0, "BORN": 0, "FLY": MSLE_SPEED, "EXPLODE": MSLE_SPEED}
 
     def do_job(self):
@@ -155,7 +184,9 @@ class Bullet(Flyobj):
 def run():
     global ticks
     for p in planes:
-        p.left(3)
+        if p.distance(p.target[0], p.target[1]) < 5:
+            p.target = (random.uniform(-window_width() / 2, window_width() / 2),
+                        random.uniform(-window_height() / 2, window_height() / 2))
         p.do_job()
     for m in missiles:
         m.right(3)
@@ -174,15 +205,18 @@ def main():
     missiles = []
     bullets = []
     tracer(False)
-    for i in range(10):
-        p = Plane("blue")
-        p.setheading(i * 30)
+    for i in range(4):
+        p = Plane("blue") if i < 2 else Plane("green")
+        p.setpos(random.uniform(-window_width() / 2, window_width() / 2),
+                 random.uniform(-window_height() / 2, window_height() / 2))
+        p.target = (random.uniform(-window_width() / 2, window_width() / 2),
+                    random.uniform(-window_height() / 2, window_height() / 2))
         planes.append(p)
-    for i in range(10):
+    for i in range(5):
         m = Missile("green", "blue")
         m.setheading(i * 20)
         missiles.append(m)
-    for i in range(10):
+    for i in range(5):
         b = Bullet()
         b.setheading(i * 30)
         bullets.append(b)
